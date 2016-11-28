@@ -1,6 +1,4 @@
 
-
-
 '''
 input: count
 return: 217 * count boolean array
