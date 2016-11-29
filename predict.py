@@ -1,13 +1,18 @@
-from perf_output import *
+import sys
 from feature_extract import *
 # from sklearn.model_selection import train_test_split
 from sklearn import linear_model
+from sklearn import neighbors
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import learning_curve
+from sklearn.model_selection import ShuffleSplit
+from sklearn.utils import shuffle
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
-                        n_jobs=1, train_sizes=np.linspace(.1, 1.0, 5)):
+                        n_jobs=1, train_sizes=np.linspace(0.1, 1.0, 100, endpoint=True)):
     plt.figure()
     plt.title(title)
     if ylim is not None:
@@ -36,28 +41,37 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     return plt
 
 
-def main():
-    count = 160000
-    # init the model
-    regr = linear_model.LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
+def main(count):
+    #["Logistic Regression", "KNeighbors Classifier", "Random Forest Classifier"]
+    names = ["Gradient Boosting Classifier"]
+    classifiers = [
+        # Logistic model
+        #log_regr = linear_model.LogisticRegression(),
+        #linear_model.LogisticRegression()
+        # knn model
+        #knn_model = neighbors.KNeighborsClassifier(n_neighbors=15),
+        #neighbors.KNeighborsClassifier(n_neighbors=10),
+        #random forest model  RFC(max_depth=5, n_estimators=10, max_features=1)
+        #random_forest = RandomForestClassifier(max_depth=5, n_estimators=15, max_features=3)
+        #RandomForestClassifier(max_depth=5, n_estimators=15, max_features=3)
+        GradientBoostingClassifier()
+        ]
+
     # get dataset
     dataset_X, dataset_y = feature_vector_extract(count)
-    cv = ShuffleSplit(n_splits=100, test_size=0.2, random_state=0)
-    plot_learning_curve(regr, 'Learning Curve (Logistic Regression)', dataset_X, dataset_y, n_jobs=4, cv=cv)
-    plt.show()
-    # # X_train, X_test, y_train, y_test = train_test_split(dataset_X, dataset_y)
-    # # # Use logisitic regression to predict
-    # # regressionFunc = linear_model.LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
-    # # train_score=regressionFunc.fit(X_train,y_train).score(X_train,y_train)
-    # # train_mse = np.mean((regressionFunc.predict(X_train) - y_train) ** 2)
-    #
-    # # Test
-    # test_score=regressionFunc.score(X_test,y_test)
-    # test_mse = np.mean((regressionFunc.predict(X_test) - y_test) ** 2)
-    #
-    # # perf_output
+    X_shuf, Y_shuf = shuffle(dataset_X, dataset_y)
+    # cv = ShuffleSplit(n_splits=100, test_size=0.2, random_state=0)
+    for name, classifier in zip(names, classifiers):
+        plot_learning_curve(classifier, 'Learning Curve-%d (%s)' %(count,name), X_shuf, Y_shuf)
 
 
 
 if __name__ == '__main__':
-    main()
+    count = 1000
+    if len(sys.argv) == 1:
+        print('We are now using 1000 samples to train.')
+    for i in sys.argv[1:]:
+        count = int(i)
+        main(count)
+    plt.show()
+

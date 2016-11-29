@@ -31,8 +31,15 @@ def read_match(match):
     match_result = 1 if match["radiant_win"] else 0
     players = match["players"]
     pp = [p["hero_id"] for p in players]
+    #build radiant players hero vector
     for x in range(108):
-        if x in pp:
+        if x in pp[0:5]:
+            hero_vec.append(1)
+        else:
+            hero_vec.append(0)
+    ##dire players hero vector
+    for x in range(108):
+        if x in pp[5:10]:
             hero_vec.append(1)
         else:
             hero_vec.append(0)
