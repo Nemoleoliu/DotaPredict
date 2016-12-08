@@ -42,18 +42,18 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 
 
 def main(count):
-    #["Logistic Regression", "KNeighbors Classifier", "Random Forest Classifier"]
-    names = ["Gradient Boosting Classifier"]
+    #["Logistic Regression", "KNeighbors Classifier", "Random Forest Classifier", "Gradient Boosting Classifier"]
+    names = ["Random Forest Classifier", "Gradient Boosting Classifier"]
     classifiers = [
         # Logistic model
         #log_regr = linear_model.LogisticRegression(),
         #linear_model.LogisticRegression()
         # knn model
-        #knn_model = neighbors.KNeighborsClassifier(n_neighbors=15),
-        #neighbors.KNeighborsClassifier(n_neighbors=10),
+        #knn_model = neighbors.KNeighborsClassifier(n_neighbors=5),
+        #neighbors.KNeighborsClassifier(n_neighbors=15),
         #random forest model  RFC(max_depth=5, n_estimators=10, max_features=1)
         #random_forest = RandomForestClassifier(max_depth=5, n_estimators=15, max_features=3)
-        #RandomForestClassifier(max_depth=5, n_estimators=15, max_features=3)
+        RandomForestClassifier(max_depth=20, n_estimators=15, max_features=3),
         GradientBoostingClassifier()
         ]
 
