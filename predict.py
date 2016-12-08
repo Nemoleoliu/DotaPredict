@@ -41,6 +41,11 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     plt.legend(loc="best")
     return plt
 
+def get_score(model, X, y):
+    model.fit(X, y)
+    print ("Cross validating...")
+    print (np.mean(cross_val_score(model, X_train, y, scoring='roc_auc')))
+
 
 def main(count):
     #["Logistic Regression", "KNeighbors Classifier", "Random Forest Classifier", "Gradient Boosting Classifier"]
@@ -63,16 +68,16 @@ def main(count):
     X_shuf, Y_shuf = shuffle(dataset_X, dataset_y)
     # cv = ShuffleSplit(n_splits=100, test_size=0.2, random_state=0)
     for name, classifier in zip(names, classifiers):
-        plot_learning_curve(classifier, 'Learning Curve-%d (%s)' %(count,name), X_shuf, Y_shuf)
-
-
+        # plot_learning_curve(classifier, 'Learning Curve-%d (%s)' %(count,name), X_shuf, Y_shuf)
+        get_score(classifier, X_shuf, Y_shuf)
 
 if __name__ == '__main__':
     count = 1000
     if len(sys.argv) == 1:
         print('We are now using 1000 samples to train.')
+        sys.argv.append(count)
+
     for i in sys.argv[1:]:
         count = int(i)
         main(count)
     plt.show()
-
