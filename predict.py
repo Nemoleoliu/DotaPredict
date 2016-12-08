@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import learning_curve
 from sklearn.model_selection import ShuffleSplit
 from sklearn.utils import shuffle
+from sklearn.cross_validation import cross_val_score
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
                         n_jobs=1, train_sizes=np.linspace(0.1, 1.0, 100, endpoint=True)):
@@ -43,18 +44,18 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 
 def main(count):
     #["Logistic Regression", "KNeighbors Classifier", "Random Forest Classifier", "Gradient Boosting Classifier"]
-    names = ["Random Forest Classifier", "Gradient Boosting Classifier"]
+    names = ["Logistic Regression"]
     classifiers = [
         # Logistic model
         #log_regr = linear_model.LogisticRegression(),
-        #linear_model.LogisticRegression()
+        linear_model.LogisticRegression(C=1.0)
         # knn model
         #knn_model = neighbors.KNeighborsClassifier(n_neighbors=5),
         #neighbors.KNeighborsClassifier(n_neighbors=15),
         #random forest model  RFC(max_depth=5, n_estimators=10, max_features=1)
         #random_forest = RandomForestClassifier(max_depth=5, n_estimators=15, max_features=3)
-        RandomForestClassifier(max_depth=20, n_estimators=15, max_features=3),
-        GradientBoostingClassifier()
+        #RandomForestClassifier(max_depth=20, n_estimators=15, max_features=3),
+        #GradientBoostingClassifier()
         ]
 
     # get dataset
