@@ -64,7 +64,10 @@ class FeatureExtractor:
 
             return hero_vec, match_result
         elif self.mode == 1 or self.mode == 2:
-            func= lambda x, y: max(x, y) if self.mode == 1 else lambda x, y: x+y
+            if self.mode == 1:
+                func = lambda x, y: max(x, y)
+            else:
+                func = lambda x, y: (x + y)
             role_vec = [0]* (len(self.roles) * 2)
             match_result = 1 if match["radiant_win"] else 0
             players = match["players"]
