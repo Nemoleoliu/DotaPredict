@@ -8,9 +8,8 @@ from sklearn.ensemble import GradientBoostingClassifier
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import learning_curve
-from sklearn.model_selection import ShuffleSplit
-from sklearn.utils import shuffle
 from sklearn.cross_validation import cross_val_score
+import warnings
 
 def plot_learning_curve(estimator, title, X, y, file_name=None, ylim=None, cv=None,
                         n_jobs=1, train_sizes=np.linspace(0.1, 1.0, 100, endpoint=True)):
@@ -42,7 +41,7 @@ def plot_learning_curve(estimator, title, X, y, file_name=None, ylim=None, cv=No
 
     plt.savefig(file_name)
     plt.close(fig)
-    
+
 
 def get_score(model, X, y):
     # 0print "C =", model.C
@@ -52,43 +51,38 @@ def get_score(model, X, y):
     print (np.mean(cross_val_score(model, X, y, scoring='roc_auc')))
 
 
-def main(count):
+def main(count, mode):
     #["Logistic Regression", "KNeighbors Classifier", "Random Forest Classifier", "Gradient Boosting Classifier"]
     names = ["Logistic Regression"]*100
     classifiers = [
         # Logistic model
         # log_regr = linear_model.LogisticRegression(),
-        # linear_model.LogisticRegression(C=1, n_jobs=-1),
+        linear_model.LogisticRegression(C=1, n_jobs=-1),
         # knn model
         # knn_model = neighbors.KNeighborsClassifier(n_neighbors=5),
         # neighbors.KNeighborsClassifier(n_neighbors=15),
         # random forest model  RFC(max_depth=5, n_estimators=10, max_features=1)
-        RandomForestClassifier(max_depth=6, n_estimators=500, max_features=10),
+        # RandomForestClassifier(max_depth=6, n_estimators=500, max_features=10),
         # GradientBoostingClassifier()
     ]
-    # get dataset
-    # print "Extracting Dataset..."
-    fe = FeatureExtractor(3)
-    dataset_X, dataset_y = fe.feature_vector_extract(count)
-    X_shuf, Y_shuf = shuffle(dataset_X, dataset_y)
-    # cv = ShuffleSplit(n_splits=100, test_size=0.2, random_state=0)
+    file_nameX = './data/X-{0}-{1}.csv'.format(count, mode)
+    file_namey = './data/y-{0}-{1}.csv'.format(count, mode)
+    X = pd.read_csv(file_nameX)
+    y = pd.read_csv(file_namey)
+    y = y['0']
     for name, classifier in zip(names, classifiers):
         plot_learning_curve(
-            classifier, 
-            'Learning Curve-%d (%s)' %(count, name), 
-            X_shuf, 
-            Y_shuf, 
-            file_name='%s(%d)-fenkai3_0' %(name, count)
+            classifier,
+            'Learning Curve-%d (%s)' %(count, name),
+            X,
+            y,
+            file_name='%s(%d)-(M%d)' %(name, count, mode)
         )
-        get_score(classifier, X_shuf, Y_shuf)
+        get_score(classifier, X, y)
 
 if __name__ == '__main__':
-    default_count = 1000
-    if len(sys.argv) == 1:
-        print('We are now using 1000 samples to train.')
-        sys.argv.append(default_count)
-
-    for i in sys.argv[1:]:
-        count = int(i)
-        main(count)
-
+    count_list = []
+    for arg in sys.argv[1:]:
+        count_list.append(int(arg))
+    for count in count_list:
+        main(count, 1)
