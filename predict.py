@@ -12,9 +12,9 @@ from sklearn.model_selection import ShuffleSplit
 from sklearn.utils import shuffle
 from sklearn.cross_validation import cross_val_score
 
-def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
+def plot_learning_curve(estimator, title, X, y, file_name=None, ylim=None, cv=None,
                         n_jobs=1, train_sizes=np.linspace(0.1, 1.0, 100, endpoint=True)):
-    plt.figure()
+    fig = plt.figure()
     plt.title(title)
     if ylim is not None:
         plt.ylim(*ylim)
@@ -39,45 +39,56 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
              label="Cross-validation score")
 
     plt.legend(loc="best")
-    return plt
+
+    plt.savefig(file_name)
+    plt.close(fig)
+    
 
 def get_score(model, X, y):
+    # 0print "C =", model.C
+    # print ("Training model...")
     model.fit(X, y)
-    print ("Cross validating...")
-    print (np.mean(cross_val_score(model, X_train, y, scoring='roc_auc')))
+    # print ("Cross validating...")
+    print (np.mean(cross_val_score(model, X, y, scoring='roc_auc')))
 
 
 def main(count):
     #["Logistic Regression", "KNeighbors Classifier", "Random Forest Classifier", "Gradient Boosting Classifier"]
-    names = ["Logistic Regression"]
+    names = ["Logistic Regression"]*100
     classifiers = [
         # Logistic model
-        #log_regr = linear_model.LogisticRegression(),
-        linear_model.LogisticRegression(C=1.0)
+        # log_regr = linear_model.LogisticRegression(),
+        # linear_model.LogisticRegression(C=1, n_jobs=-1),
         # knn model
-        #knn_model = neighbors.KNeighborsClassifier(n_neighbors=5),
-        #neighbors.KNeighborsClassifier(n_neighbors=15),
-        #random forest model  RFC(max_depth=5, n_estimators=10, max_features=1)
-        #random_forest = RandomForestClassifier(max_depth=5, n_estimators=15, max_features=3)
-        #RandomForestClassifier(max_depth=20, n_estimators=15, max_features=3),
-        #GradientBoostingClassifier()
-        ]
-
+        # knn_model = neighbors.KNeighborsClassifier(n_neighbors=5),
+        # neighbors.KNeighborsClassifier(n_neighbors=15),
+        # random forest model  RFC(max_depth=5, n_estimators=10, max_features=1)
+        RandomForestClassifier(max_depth=6, n_estimators=500, max_features=10),
+        # GradientBoostingClassifier()
+    ]
     # get dataset
-    dataset_X, dataset_y = feature_vector_extract(count)
+    # print "Extracting Dataset..."
+    fe = FeatureExtractor(3)
+    dataset_X, dataset_y = fe.feature_vector_extract(count)
     X_shuf, Y_shuf = shuffle(dataset_X, dataset_y)
     # cv = ShuffleSplit(n_splits=100, test_size=0.2, random_state=0)
     for name, classifier in zip(names, classifiers):
-        # plot_learning_curve(classifier, 'Learning Curve-%d (%s)' %(count,name), X_shuf, Y_shuf)
+        plot_learning_curve(
+            classifier, 
+            'Learning Curve-%d (%s)' %(count, name), 
+            X_shuf, 
+            Y_shuf, 
+            file_name='%s(%d)-fenkai3_0' %(name, count)
+        )
         get_score(classifier, X_shuf, Y_shuf)
 
 if __name__ == '__main__':
-    count = 1000
+    default_count = 1000
     if len(sys.argv) == 1:
         print('We are now using 1000 samples to train.')
-        sys.argv.append(count)
+        sys.argv.append(default_count)
 
     for i in sys.argv[1:]:
         count = int(i)
         main(count)
-    plt.show()
+
