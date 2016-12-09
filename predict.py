@@ -49,21 +49,42 @@ def get_score(model, X, y):
     # 0print "C =", model.C
     # print ("Training model...")
     model.fit(X, y)
+
     # print ("Cross validating...")
     print (np.mean(cross_val_score(model, X, y, scoring='roc_auc')))
 
+def get_role_score(X, y):
+    model = linear_model.LinearRegression()
+    model.fit(X, y)
+    return model.predict(X)
 
-def main(count, mode):
+def main(count, mode, ratio = 1, addRole = False):
     models = {}
-    # models['Logistic Regression'] = linear_model.LogisticRegression(C=1, n_jobs=-1)
+    models['Logistic Regression'] = linear_model.LogisticRegression(C=1, n_jobs=-1)
     # models['Random Forest'] = RandomForestClassifier(max_depth=6, n_estimators=500, max_features=10)
     # models['KNN'] = neighbors.KNeighborsClassifier(n_neighbors=5)
-    models['ANN'] = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(100, 50, 10, 5), random_state=1)
-    file_nameX = './data/X-{0}-{1}.csv'.format(count, mode)
-    file_namey = './data/y-{0}-{1}.csv'.format(count, mode)
-    X = pd.read_csv(file_nameX)
+    # models['ANN'] = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(100, 50, 10, 5), random_state=1)
+    if mode == 5:
+        file_nameX1 = './data/X-{0}-{1}.csv'.format(count, 0)
+        file_nameX2 = './data/X-{0}-{1}.csv'.format(count, 4)
+        X1 = pd.read_csv(file_nameX1)
+        # X1 = filter_feature_by_weight(X1, 0, 0.5)
+        X2 = pd.read_csv(file_nameX2)
+        X = pd.concat([X1, X2], axis=1)
+        file_namey = './data/y-{0}-{1}.csv'.format(count, 0)
+    else :
+        file_nameX = './data/X-{0}-{1}.csv'.format(count, mode)
+        file_namey = './data/y-{0}-{1}.csv'.format(count, mode)
+        X = pd.read_csv(file_nameX)
     y = pd.read_csv(file_namey)
     y = y['0']
+
+    # Add a new role feature
+    if addRole:
+        X['role'] = get_role_score(X, y)
+
+    if ratio < 1:
+        X = filter_feature_by_weight(X, mode, ratio)
     for name,classifier in models.iteritems():
         plot_learning_curve(
             classifier,
@@ -73,6 +94,14 @@ def main(count, mode):
             file_name='%s(%d)-(M%d)' %(name, count, mode)
         )
         get_score(classifier, X, y)
+
+def filter_feature_by_weight(X, mode, ratio):
+    col, indices, importances = test_feature_weight(mode)
+    valid_indices = []
+    for x in range(int(col * ratio)):
+        valid_indices.append(indices[x])
+    X = X.loc[:, lambda df: [str(v) for v in valid_indices]]
+    return X
 
 def test_feature_weight(mode):
     count = 18000
@@ -87,32 +116,28 @@ def test_feature_weight(mode):
     std = np.std([tree.feature_importances_ for tree in forest.estimators_],
                  axis=0)
     indices = np.argsort(importances)[::-1]
+    return X.shape[1], indices, importances
 
-    # Print the feature ranking
-    print("Feature ranking:")
-
-    for f in range(X.shape[1]):
-        print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
-
-    # Plot the feature importances of the forest
+def draw_feature_weight(mode, col, indices):
     fig = plt.figure()
     plt.title("Feature importances")
-    plt.bar(range(X.shape[1]), importances[indices],
+    plt.bar(range(col), importances[indices],
            color="r", yerr=std[indices], align="center")
-    plt.xticks(range(X.shape[1]), indices)
-    plt.xlim([-1, X.shape[1]])
+    plt.xticks(range(col), indices)
+    plt.xlim([-1, col])
     plt.savefig('Feature Weight Mode {0}'.format(mode))
     plt.close(fig)
-
 
 if __name__ == '__main__':
     count_list = []
     for arg in sys.argv[1:]:
         count_list.append(int(arg))
-    # for count in count_list:
-    #     main(count, 0)
-    test_feature_weight(0)
-    test_feature_weight(1)
-    test_feature_weight(2)
-    test_feature_weight(3)
-    test_feature_weight(4)
+    mode = 0
+    for count in count_list:
+        main(count, mode, addRole = True)
+        main(count, mode, addRole = False)
+
+    # Test Feature Weights
+    # for mode in range(5):
+    #     col, indices, importances = test_feature_weight(mode)
+    #     draw_feature_weight(mode, col, indices)
