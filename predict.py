@@ -45,13 +45,13 @@ def plot_learning_curve(estimator, title, X, y, file_name=None, ylim=None, cv=No
     plt.close(fig)
 
 
-def get_score(model, X, y):
+def get_score(name, model, X, y):
     # 0print "C =", model.C
     # print ("Training model...")
     model.fit(X, y)
 
     # print ("Cross validating...")
-    print (np.mean(cross_val_score(model, X, y, scoring='roc_auc')))
+    print name, np.mean(cross_val_score(model, X, y, scoring='roc_auc'))
 
 def get_role_score(X, y):
     model = linear_model.LinearRegression()
@@ -60,10 +60,26 @@ def get_role_score(X, y):
 
 def main(count, mode, ratio = 1, addRole = False):
     models = {}
-    models['Logistic Regression'] = linear_model.LogisticRegression(C=1, n_jobs=-1)
+    # models['Logistic Regression'] = linear_model.LogisticRegression(C=1, n_jobs=-1)
     # models['Random Forest'] = RandomForestClassifier(max_depth=6, n_estimators=500, max_features=10)
-    # models['KNN'] = neighbors.KNeighborsClassifier(n_neighbors=5)
-    # models['ANN'] = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(100, 50, 10, 5), random_state=1)
+    # models['KNN'] = neighbors.KNeighborsClassifier(n_neighbors=15)
+    # models['ANN'] = MLPClassifier(
+    #     learning_rate='adaptive',
+    #     solver='lbfgs',
+    #     hidden_layer_sizes=(3, 3, 3, 3),
+    #     random_state=1
+    # )
+    models['ANN4'] = MLPClassifier(
+        learning_rate='adaptive',
+        solver='lbfgs',
+        hidden_layer_sizes=(2, 2, 2, 2, 2),
+    )
+    # models['ANN3'] = MLPClassifier(
+    #     learning_rate='adaptive',
+    #     solver='lbfgs',
+    #     hidden_layer_sizes=(3, 3, 2, 2),
+    #     random_state=1
+    # )
     if mode == 5:
         file_nameX1 = './data/X-{0}-{1}.csv'.format(count, 0)
         file_nameX2 = './data/X-{0}-{1}.csv'.format(count, 4)
@@ -93,7 +109,7 @@ def main(count, mode, ratio = 1, addRole = False):
             y,
             file_name='%s(%d)-(M%d)' %(name, count, mode)
         )
-        get_score(classifier, X, y)
+        get_score(name, classifier, X, y)
 
 def filter_feature_by_weight(X, mode, ratio):
     col, indices, importances = test_feature_weight(mode)
@@ -134,8 +150,9 @@ if __name__ == '__main__':
         count_list.append(int(arg))
     mode = 0
     for count in count_list:
-        main(count, mode, addRole = True)
-        main(count, mode, addRole = False)
+        main(count, mode)
+        # main(count, mode, addRole = True)
+        # main(count, mode, addRole = False)
 
     # Test Feature Weights
     # for mode in range(5):
